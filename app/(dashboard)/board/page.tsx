@@ -1,60 +1,23 @@
-// "use client";
-// //app/(dashboard)/board/page.tsx
-// import Link from "next/link";
-// import { useQuery } from "@tanstack/react-query";
-// import { KanbanBoard } from "@/components/applications/kanban-board";
-// import { EmptyState } from "@/components/ui/empty-state";
-// import { Loader } from "@/components/ui/loader";
-// import { Button } from "@/components/ui/button";
-// import { getApplicationsApi } from "@/lib/api/applications";
-
-// export default function BoardPage() {
-//   const { data, isLoading, isError } = useQuery({
-//     queryKey: ["applications"],
-//     queryFn: getApplicationsApi,
-//   });
-
-//   if (isLoading) return <Loader label="Loading your board..." />;
-
-//   if (isError) {
-//     return (
-//       <EmptyState
-//         title="Could not load applications"
-//         description="Please refresh and try again."
-//       />
-//     );
-//   }
-
-//   if (!data?.length) {
-//     return (
-//       <EmptyState
-//         title="No applications yet"
-//         description="Create your first job application and start tracking it on the Kanban board."
-//         action={
-//           <Link href="/applications/new">
-//             <Button>Add Application</Button>
-//           </Link>
-//         }
-//       />
-//     );
-//   }
-
-//   return <KanbanBoard applications={data} />;
-// }
 
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { KanbanBoard } from "@/components/applications/kanban-board";
 import { ApplicationStats } from "@/components/applications/application-stats";
+import { BoardFilters } from "@/components/applications/board-filters";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Loader } from "@/components/ui/loader";
 import { Button } from "@/components/ui/button";
 import { getApplicationsApi } from "@/lib/api/applications";
+import type { ApplicationStatus } from "@/types";
 
 export default function BoardPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"All" | ApplicationStatus>("All");
+
   const {
     data: applications = [],
     isLoading,
@@ -63,6 +26,24 @@ export default function BoardPage() {
     queryKey: ["applications"],
     queryFn: getApplicationsApi,
   });
+
+  const filteredApplications = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+
+    return applications.filter((application) => {
+      const matchesSearch =
+        normalizedSearch === "" ||
+        application.company.toLowerCase().includes(normalizedSearch) ||
+        application.role.toLowerCase().includes(normalizedSearch) ||
+        (application.location ?? "").toLowerCase().includes(normalizedSearch) ||
+        (application.seniority ?? "").toLowerCase().includes(normalizedSearch);
+
+      const matchesStatus =
+        statusFilter === "All" || application.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [applications, searchTerm, statusFilter]);
 
   if (isLoading) {
     return (
@@ -111,7 +92,23 @@ export default function BoardPage() {
           }
         />
       ) : (
-        <KanbanBoard applications={applications} />
+        <>
+          <BoardFilters
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            onSearchChange={setSearchTerm}
+            onStatusChange={setStatusFilter}
+          />
+
+          {filteredApplications.length === 0 ? (
+            <EmptyState
+              title="No matching applications"
+              description="Try changing your search or filter."
+            />
+          ) : (
+            <KanbanBoard applications={filteredApplications} />
+          )}
+        </>
       )}
     </div>
   );
