@@ -1,5 +1,5 @@
 "use client";
-
+//app/(dashboard)/board/page.tsx
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { KanbanBoard } from "@/components/applications/kanban-board";

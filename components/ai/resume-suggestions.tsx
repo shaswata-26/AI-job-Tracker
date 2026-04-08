@@ -1,5 +1,5 @@
 "use client";
-
+//components/ai/resume-suggestions.tsx
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 

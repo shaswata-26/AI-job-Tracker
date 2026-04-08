@@ -4,7 +4,7 @@ import type {
   ParsedJobDescription,
   ResumeSuggestionsResponse,
 } from "@/types";
-
+//lib/api/ai.ts
 export async function parseJobDescriptionApi(jdText: string) {
   const response = await apiClient.post<ApiResponse<ParsedJobDescription>>(
     "/ai/parse-job-description",

@@ -1,5 +1,5 @@
 "use client";
-
+//stores/ui.store.ts
 import { create } from "zustand";
 
 type UIState = {

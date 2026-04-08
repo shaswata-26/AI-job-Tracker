@@ -1,5 +1,5 @@
 import type { ApplicationStatus } from "@/types";
-
+//components/applications/application-status-badge.tsx
 const badgeMap: Record<ApplicationStatus, string> = {
   Applied: "bg-slate-100 text-slate-800",
   "Phone Screen": "bg-blue-100 text-blue-800",

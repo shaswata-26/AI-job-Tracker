@@ -1,11 +1,31 @@
-import { cn } from "@/lib/utils";
-import { HTMLAttributes } from "react";
+// import { cn } from "@/lib/utils";
+// import { HTMLAttributes } from "react";
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+// export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+//   return (
+//     <div
+//       className={cn("rounded-2xl border border-slate-200 bg-white shadow-soft", className)}
+//       {...props}
+//     />
+//   );
+// }
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
   return (
     <div
-      className={cn("rounded-2xl border border-slate-200 bg-white shadow-soft", className)}
+      ref={ref}
+      className={cn(
+        "rounded-2xl border border-slate-200 bg-white shadow-sm",
+        className
+      )}
       {...props}
     />
   );
-}
+});
+
+Card.displayName = "Card";

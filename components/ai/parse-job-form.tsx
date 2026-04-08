@@ -1,5 +1,5 @@
 "use client";
-
+//components/ai/parse-job-form.tsx
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { parseJobDescriptionApi, generateResumeSuggestionsApi } from "@/lib/api/ai";

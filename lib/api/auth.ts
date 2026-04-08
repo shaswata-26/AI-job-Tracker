@@ -1,6 +1,6 @@
 import { apiClient } from "@/lib/api/client";
 import type { ApiResponse, AuthResponse, User } from "@/types";
-
+//lib/api/auth.ts
 export async function registerApi(payload: {
   name: string;
   email: string;

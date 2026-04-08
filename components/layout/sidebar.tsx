@@ -1,5 +1,5 @@
 "use client";
-
+//components/layout/sidebar.tsx
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BriefcaseBusiness, KanbanSquare, PlusSquare } from "lucide-react";

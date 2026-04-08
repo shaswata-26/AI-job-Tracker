@@ -6,7 +6,7 @@ import type {
   CreateApplicationPayload,
   UpdateApplicationPayload,
 } from "@/types";
-
+//lib/api/applications.ts
 export async function getApplicationsApi() {
   const response = await apiClient.get<ApiResponse<Application[]>>("/applications");
   return response.data.data;

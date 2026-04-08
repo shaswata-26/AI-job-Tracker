@@ -1,5 +1,5 @@
 "use client";
-
+//applications/new/page.tsx
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { ApplicationForm } from "@/components/applications/application-form";

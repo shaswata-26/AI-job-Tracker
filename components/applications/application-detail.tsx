@@ -1,5 +1,5 @@
 "use client";
-
+//components/applications/application-detail.tsx
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";

@@ -1,5 +1,5 @@
 "use client";
-
+//applications/[id]/page.tsx
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ApplicationDetail } from "@/components/applications/application-detail";
