@@ -3,10 +3,12 @@ import type {
   ApiResponse,
   Application,
   ApplicationStatus,
+  CompleteFollowUpPayload,
   CreateApplicationPayload,
   UpdateApplicationPayload,
+  UpdateFollowUpPayload,
 } from "@/types";
-//lib/api/applications.ts
+
 export async function getApplicationsApi() {
   const response = await apiClient.get<ApiResponse<Application[]>>("/applications");
   return response.data.data;
@@ -31,6 +33,25 @@ export async function updateApplicationStatusApi(id: string, status: Application
   const response = await apiClient.patch<ApiResponse<Application>>(`/applications/${id}/status`, {
     status,
   });
+  return response.data.data;
+}
+
+export async function updateFollowUpApi(id: string, payload: UpdateFollowUpPayload) {
+  const response = await apiClient.patch<ApiResponse<Application>>(
+    `/applications/${id}/follow-up`,
+    payload
+  );
+  return response.data.data;
+}
+
+export async function completeFollowUpApi(
+  id: string,
+  payload: CompleteFollowUpPayload = {}
+) {
+  const response = await apiClient.patch<ApiResponse<Application>>(
+    `/applications/${id}/follow-up/complete`,
+    payload
+  );
   return response.data.data;
 }
 

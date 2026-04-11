@@ -1,5 +1,3 @@
-//components/applications/application-form.tsx
-
 "use client";
 
 import { useMemo, useState } from "react";
@@ -34,6 +32,8 @@ type ApplicationFormState = {
   salaryRange: string;
   seniority: string;
   location: string;
+  followUpDate: string;
+  followUpNote: string;
 };
 
 function parseCommaSeparated(value: string): string[] {
@@ -56,6 +56,10 @@ function getInitialFormState(application?: Application): ApplicationFormState {
     salaryRange: application?.salaryRange ?? "",
     seniority: application?.seniority ?? "",
     location: application?.location ?? "",
+    followUpDate: application?.followUpDate
+      ? new Date(application.followUpDate).toISOString().slice(0, 10)
+      : "",
+    followUpNote: application?.followUpNote ?? "",
   };
 }
 
@@ -90,8 +94,14 @@ export function ApplicationForm({ application }: { application?: Application }) 
       seniority: form.seniority,
       location: form.location,
       resumeSuggestions,
+      followUpDate: form.followUpDate
+        ? new Date(form.followUpDate).toISOString()
+        : undefined,
+      followUpNote: form.followUpNote || undefined,
+      followUpStatus: application?.followUpStatus ?? "pending",
+      lastFollowedUpAt: application?.lastFollowedUpAt,
     }),
-    [form, jdText, requiredSkillsInput, niceToHaveSkillsInput, resumeSuggestions]
+    [form, jdText, requiredSkillsInput, niceToHaveSkillsInput, resumeSuggestions, application]
   );
 
   const mutation = useMutation({
@@ -230,6 +240,28 @@ export function ApplicationForm({ application }: { application?: Application }) 
                 setForm((prev) => ({
                   ...prev,
                   location: e.target.value,
+                }))
+              }
+            />
+
+            <Input
+              type="date"
+              value={form.followUpDate}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  followUpDate: e.target.value,
+                }))
+              }
+            />
+
+            <Input
+              placeholder="Follow-up note"
+              value={form.followUpNote}
+              onChange={(e) =>
+                setForm((prev) => ({
+                  ...prev,
+                  followUpNote: e.target.value,
                 }))
               }
             />

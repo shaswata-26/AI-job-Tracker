@@ -1,11 +1,11 @@
-
-//types/index.ts
 export type ApplicationStatus =
   | "Applied"
   | "Phone Screen"
   | "Interview"
   | "Offer"
   | "Rejected";
+
+export type FollowUpStatus = "pending" | "done";
 
 export interface User {
   id: string;
@@ -54,6 +54,11 @@ export interface Application {
   seniority?: string;
   location?: string;
   resumeSuggestions: string[];
+  followUpDate?: string;
+  followUpNote?: string;
+  followUpStatus: FollowUpStatus;
+  lastFollowedUpAt?: string;
+  isOverdue: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,6 +77,19 @@ export interface CreateApplicationPayload {
   seniority?: string;
   location?: string;
   resumeSuggestions: string[];
+  followUpDate?: string;
+  followUpNote?: string;
+  followUpStatus?: FollowUpStatus;
+  lastFollowedUpAt?: string;
 }
 
 export type UpdateApplicationPayload = Partial<CreateApplicationPayload>;
+
+export interface UpdateFollowUpPayload {
+  followUpDate: string;
+  followUpNote?: string;
+}
+
+export interface CompleteFollowUpPayload {
+  lastFollowedUpAt?: string;
+}

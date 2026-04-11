@@ -1,13 +1,22 @@
 "use client";
-//components/applications/application-detail.tsx
+
 import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { deleteApplicationApi } from "@/lib/api/applications";
-import { formatDate, extractErrorMessage } from "@/lib/utils";
+
+import {
+  completeFollowUpApi,
+  deleteApplicationApi,
+  updateFollowUpApi,
+} from "@/lib/api/applications";
+import { extractErrorMessage, formatDate } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ApplicationStatusBadge } from "@/components/applications/application-status-badge";
 import type { Application } from "@/types";
 
@@ -15,12 +24,50 @@ export function ApplicationDetail({ application }: { application: Application })
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const [followUpDate, setFollowUpDate] = useState(
+    application.followUpDate
+      ? new Date(application.followUpDate).toISOString().slice(0, 10)
+      : ""
+  );
+  const [followUpNote, setFollowUpNote] = useState(application.followUpNote ?? "");
+
+  const invalidateApplicationQueries = () => {
+    queryClient.invalidateQueries({ queryKey: ["applications"] });
+    queryClient.invalidateQueries({ queryKey: ["application", application._id] });
+  };
+
   const deleteMutation = useMutation({
     mutationFn: () => deleteApplicationApi(application._id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      invalidateApplicationQueries();
       toast.success("Application deleted");
       router.push("/board");
+    },
+    onError: (error) => {
+      toast.error(extractErrorMessage(error));
+    },
+  });
+
+  const updateFollowUpMutation = useMutation({
+    mutationFn: () =>
+      updateFollowUpApi(application._id, {
+        followUpDate: new Date(followUpDate).toISOString(),
+        followUpNote,
+      }),
+    onSuccess: () => {
+      invalidateApplicationQueries();
+      toast.success("Follow-up reminder updated");
+    },
+    onError: (error) => {
+      toast.error(extractErrorMessage(error));
+    },
+  });
+
+  const completeFollowUpMutation = useMutation({
+    mutationFn: () => completeFollowUpApi(application._id),
+    onSuccess: () => {
+      invalidateApplicationQueries();
+      toast.success("Follow-up marked as completed");
     },
     onError: (error) => {
       toast.error(extractErrorMessage(error));
@@ -33,8 +80,26 @@ export function ApplicationDetail({ application }: { application: Application })
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{application.role}</h1>
           <p className="mt-1 text-slate-600">{application.company}</p>
-          <div className="mt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <ApplicationStatusBadge status={application.status} />
+
+            {application.followUpDate ? (
+              <span
+                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
+                  application.isOverdue
+                    ? "bg-rose-100 text-rose-800"
+                    : application.followUpStatus === "done"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                }`}
+              >
+                {application.isOverdue
+                  ? "Follow-up overdue"
+                  : application.followUpStatus === "done"
+                    ? "Follow-up done"
+                    : "Follow-up pending"}
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -42,7 +107,11 @@ export function ApplicationDetail({ application }: { application: Application })
           <Link href={`/applications/new?edit=${application._id}`}>
             <Button variant="secondary">Quick Edit</Button>
           </Link>
-          <Button variant="danger" onClick={() => deleteMutation.mutate()} disabled={deleteMutation.isPending}>
+          <Button
+            variant="danger"
+            onClick={() => deleteMutation.mutate()}
+            disabled={deleteMutation.isPending}
+          >
             {deleteMutation.isPending ? "Deleting..." : "Delete"}
           </Button>
         </div>
@@ -56,7 +125,21 @@ export function ApplicationDetail({ application }: { application: Application })
             <p><strong>Location:</strong> {application.location || "—"}</p>
             <p><strong>Seniority:</strong> {application.seniority || "—"}</p>
             <p><strong>Salary Range:</strong> {application.salaryRange || "—"}</p>
-            <p><strong>JD Link:</strong> {application.jdLink ? <a className="text-brand-600" href={application.jdLink} target="_blank">Open link</a> : "—"}</p>
+            <p>
+              <strong>JD Link:</strong>{" "}
+              {application.jdLink ? (
+                <a
+                  className="text-brand-600"
+                  href={application.jdLink}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open link
+                </a>
+              ) : (
+                "—"
+              )}
+            </p>
           </div>
         </div>
 
@@ -75,9 +158,65 @@ export function ApplicationDetail({ application }: { application: Application })
         </div>
       </div>
 
+      <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+        <h2 className="mb-4 font-semibold text-slate-900">Follow-up Reminder</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input
+            type="date"
+            value={followUpDate}
+            onChange={(e) => setFollowUpDate(e.target.value)}
+          />
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              onClick={() => updateFollowUpMutation.mutate()}
+              disabled={!followUpDate || updateFollowUpMutation.isPending}
+            >
+              {updateFollowUpMutation.isPending ? "Saving..." : "Save Reminder"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => completeFollowUpMutation.mutate()}
+              disabled={
+                application.followUpStatus === "done" || completeFollowUpMutation.isPending
+              }
+            >
+              {completeFollowUpMutation.isPending ? "Updating..." : "Mark Complete"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <Textarea
+            placeholder="Add follow-up note"
+            value={followUpNote}
+            onChange={(e) => setFollowUpNote(e.target.value)}
+          />
+        </div>
+
+        <div className="mt-4 space-y-2 text-sm text-slate-700">
+          <p>
+            <strong>Current reminder date:</strong>{" "}
+            {application.followUpDate ? formatDate(application.followUpDate) : "—"}
+          </p>
+          <p>
+            <strong>Reminder note:</strong> {application.followUpNote || "—"}
+          </p>
+          <p>
+            <strong>Last followed up at:</strong>{" "}
+            {application.lastFollowedUpAt ? formatDate(application.lastFollowedUpAt) : "—"}
+          </p>
+        </div>
+      </div>
+
       <div className="mt-8">
         <h2 className="mb-3 font-semibold text-slate-900">Notes</h2>
-        <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">{application.notes || "No notes added"}</p>
+        <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+          {application.notes || "No notes added"}
+        </p>
       </div>
 
       <div className="mt-8">
@@ -85,7 +224,10 @@ export function ApplicationDetail({ application }: { application: Application })
         <div className="space-y-3">
           {application.resumeSuggestions.length ? (
             application.resumeSuggestions.map((item, index) => (
-              <div key={`${item}-${index}`} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700">
+              <div
+                key={`${item}-${index}`}
+                className="rounded-xl border border-slate-200 p-4 text-sm text-slate-700"
+              >
                 {item}
               </div>
             ))
